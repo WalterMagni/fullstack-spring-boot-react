@@ -1,5 +1,6 @@
 package io.github.waltermagni.imageliteapi.controller;
 
+import io.github.waltermagni.imageliteapi.mapper.ImageMapper;
 import io.github.waltermagni.imageliteapi.model.entity.domain.Image;
 import io.github.waltermagni.imageliteapi.model.enums.ImageExtension;
 import io.github.waltermagni.imageliteapi.service.ImageService;
@@ -12,8 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,6 +27,7 @@ import java.util.List;
 public class ImagesController {
 
     private final ImageService service;
+    private final ImageMapper mapper;
 
 /*
     public ImagesController(ImageService service) {
@@ -37,17 +41,18 @@ public class ImagesController {
 
         log.info("Imagem recebida: nome: {}, size: {}", file.getOriginalFilename(), file.getSize());
 
-        Image image = Image.builder()
-                .name(name)
-                .tags(String.join(",", tags))
-                .size(file.getSize())
-                .extension(ImageExtension.valueOf(MediaType.valueOf(file.getContentType())))
-                .file(file.getBytes())
-                .build();
+        Image image = mapper.mapToImage(file, name, tags);
+        Image savedImage = service.save(image);
+        URI uri = buildImageURL(savedImage);
 
-        service.save(image);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.created(uri).build();
+    }
+
+    //localhost:8080/v1/images/asdasdadas
+    private URI buildImageURL(Image image) {
+        String imagePath = '/' + image.getId();
+        return ServletUriComponentsBuilder.fromCurrentRequest().path(imagePath).build().toUri();
     }
 
 }
