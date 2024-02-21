@@ -6,12 +6,11 @@ import io.github.waltermagni.imageliteapi.model.enums.ImageExtension;
 import io.github.waltermagni.imageliteapi.service.ImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -29,10 +28,6 @@ public class ImagesController {
     private final ImageService service;
     private final ImageMapper mapper;
 
-/*
-    public ImagesController(ImageService service) {
-        this.service = service;
-    }*/
 
     @PostMapping
     public ResponseEntity save(@RequestParam("file") MultipartFile file,
@@ -49,7 +44,23 @@ public class ImagesController {
         return ResponseEntity.created(uri).build();
     }
 
-    //localhost:8080/v1/images/asdasdadas
+    @GetMapping(path = "{id}")
+    public ResponseEntity<byte[]> getImage(@PathVariable String id){
+        var obj = service.findById(id);
+
+        if(obj.isPresent()){
+            var img = obj.get();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(img.getExtension().getMediaType());
+            headers.setContentLength(img.getSize());
+            headers.setContentDispositionFormData("inline;filename=\"" + img.getFileName() + "\"", img.getFileName());
+
+            return new ResponseEntity<>(img.getFile(), headers, HttpStatus.OK);
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
     private URI buildImageURL(Image image) {
         String imagePath = '/' + image.getId();
         return ServletUriComponentsBuilder.fromCurrentRequest().path(imagePath).build().toUri();

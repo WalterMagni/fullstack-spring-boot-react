@@ -1,5 +1,6 @@
 package io.github.waltermagni.imageliteapi.model.enums;
 
+import lombok.Getter;
 import org.springframework.http.MediaType;
 
 import java.util.Arrays;
@@ -12,15 +13,13 @@ public enum ImageExtension {
     GIF(MediaType.IMAGE_GIF),
     ;
 
+    @Getter
     private final MediaType mediaType;
 
     ImageExtension(MediaType mediaType) {
         this.mediaType = mediaType;
     }
 
-    public MediaType getMediaType() {
-        return mediaType;
-    }
 
     public static ImageExtension valueOf(MediaType mediaType) {
         return Arrays.stream(values())
