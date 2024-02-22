@@ -1,11 +1,13 @@
 package io.github.waltermagni.imageliteapi.controller;
 
+import io.github.waltermagni.imageliteapi.dto.ImageDTO;
 import io.github.waltermagni.imageliteapi.mapper.ImageMapper;
 import io.github.waltermagni.imageliteapi.model.entity.domain.Image;
 import io.github.waltermagni.imageliteapi.model.enums.ImageExtension;
 import io.github.waltermagni.imageliteapi.service.ImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("v1/images")
@@ -59,6 +62,21 @@ public class ImagesController {
         }
 
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ImageDTO>> search(
+            @RequestParam(value = "extension", required = false, defaultValue = "" ) String extension,
+            @RequestParam(value = "query", required = false) String query){
+
+        var result = service.search(ImageExtension.valueOf(extension), query);
+
+        var images = result.stream().map(image -> {
+                var url = buildImageURL(image).toString();
+                return mapper.ImageToDTO(image, url);
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(images);
     }
 
     private URI buildImageURL(Image image) {

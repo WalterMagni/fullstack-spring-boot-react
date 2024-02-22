@@ -20,12 +20,12 @@ public class ImageMapper {
                 .name(name)
                 .tags(String.join(",", tags))
                 .size(file.getSize())
-                .extension(ImageExtension.valueOf(MediaType.valueOf(file.getContentType())))
+                .extension(ImageExtension.valueOf(file.getContentType()))
                 .file(file.getBytes())
                 .build();
     }
 
-    public ImageDTO domainToDTO(Image image, String url) {
+    public ImageDTO ImageToDTO(Image image, String url) {
         return ImageDTO.builder()
                 .url(url)
                 .extension(image.getExtension().name())
